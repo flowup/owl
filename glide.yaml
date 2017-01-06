@@ -1,0 +1,7 @@
+package: github.com/flowup/owl
+import:
+- package: github.com/fsnotify/fsnotify
+- package: golang.org/x/sys
+  subpackages:
+  - unix
+- package: github.com/urfave/cli

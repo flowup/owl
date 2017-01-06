@@ -1,0 +1,43 @@
+version: '2'
+services:
+  init:
+    build: .
+    image: ${ORGANIZATION}/${PROJECT_NAME}
+    volumes:
+     - .:${PROJECT_PATH}:Z
+    working_dir: ${PROJECT_PATH}
+    command: bash -c "glide init --non-interactive"
+  dev:
+    build: .
+    image: ${ORGANIZATION}/${PROJECT_NAME}
+    volumes:
+     - .:${PROJECT_PATH}:Z
+    working_dir: ${PROJECT_PATH}
+    command: bash -c "glide install && go install ${CMD_GOPATH} && ${PROJECT_CMD_NAME} 'echo \"some file was changed\"'"
+    ports:
+      - 3000:3000
+      - 3001:3001
+    links:
+     - dev_db
+  test-dev:
+    build: .
+    image: ${ORGANIZATION}/${PROJECT_NAME}
+    volumes:
+     - .:${PROJECT_PATH}:Z
+    working_dir: ${PROJECT_PATH}
+    command: bash -c ""
+  empty:
+    build: .
+    image: ${ORGANIZATION}/${PROJECT_NAME}
+    volumes:
+     - .:${PROJECT_PATH}:Z
+    working_dir: ${PROJECT_PATH}
+    command: tail -f /dev/null
+  dev_db:
+    image: postgres
+    container_name: ${PROJECT_NAME}_dev_db
+    environment:
+     - POSTGRES_USER=goo
+     - POSTGRES_PASSWORD=goo
+    ports:
+     - 5432:5432

@@ -1,0 +1,12 @@
+hash: 6140e6ec9c531a121cde8beef2d0bb215e3df2f800527a0a777baf6ee3dbac96
+updated: 2017-01-06T15:25:13.562491736Z
+imports:
+- name: github.com/fsnotify/fsnotify
+  version: fd9ec7deca8bf46ecd2a795baaacf2b3a9be1197
+- name: github.com/urfave/cli
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
+- name: golang.org/x/sys
+  version: d75a52659825e75fff6158388dddc6a5b04f9ba5
+  subpackages:
+  - unix
+testImports: []
