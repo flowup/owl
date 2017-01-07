@@ -1,15 +1,13 @@
 version: '2'
 services:
   init:
-    build: .
-    image: ${ORGANIZATION}/${PROJECT_NAME}
+    image: flowup/godev
     volumes:
      - .:${PROJECT_PATH}:Z
     working_dir: ${PROJECT_PATH}
     command: bash -c "glide init --non-interactive"
   dev:
-    build: .
-    image: ${ORGANIZATION}/${PROJECT_NAME}
+    image: flowup/godev
     volumes:
      - .:${PROJECT_PATH}:Z
     working_dir: ${PROJECT_PATH}
@@ -20,15 +18,13 @@ services:
     links:
      - dev_db
   test-dev:
-    build: .
-    image: ${ORGANIZATION}/${PROJECT_NAME}
+    image: flowup/godev
     volumes:
      - .:${PROJECT_PATH}:Z
     working_dir: ${PROJECT_PATH}
     command: bash -c ""
   empty:
-    build: .
-    image: ${ORGANIZATION}/${PROJECT_NAME}
+    image: flowup/godev
     volumes:
      - .:${PROJECT_PATH}:Z
     working_dir: ${PROJECT_PATH}
