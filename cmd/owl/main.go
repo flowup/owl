@@ -4,12 +4,16 @@ import (
 	"github.com/flowup/owl/.glide/cache/src/https-github.com-urfave-cli"
 	"fmt"
 	"os"
-	"strings"
 	"path/filepath"
 	"log"
 	"regexp"
 	"os/exec"
 	"github.com/fsnotify/fsnotify"
+	"errors"
+)
+
+var (
+	errFlagRunIsPresent = errors.New("flag --run or -r is required ")
 )
 
 func main() {
@@ -18,17 +22,23 @@ func main() {
 	app.Usage = "owl watching all files in directory and when are changed, run the command"
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name: "ignore, i",
 			Usage:"All directories with name `IGNORE` are ignored",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name: "run, r",
 			Usage:"If is any file changed, run `RUN`",
 		},
+
 	}
 
 	app.Action = func(c *cli.Context) error {
+
+		if c.String("run") == "" {
+			return errFlagRunIsPresent
+		}
+
 		// set new watcher
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
@@ -45,14 +55,13 @@ func main() {
 
 		// this files are ignore
 		ignoreList := make(map[string]bool)
-		for _, dir := range (strings.Split(c.String("ignore"), ";")) {
+		for _, dir := range (c.StringSlice("ignore")) {
 			ignoreList[dir] = true
 		}
 
 		err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				log.Print(err)
-				return nil
+				return err
 			}
 
 			// check if file is not in ignorelist
@@ -77,14 +86,12 @@ func main() {
 		}
 
 		// seperate argument into two parts
-		fmt.Println(c.String("run"))
-
 		re := regexp.MustCompile("^([A-Za-z0-9]+)\\s?(.*)")
 
 		var name []string
 		var arq []string
 
-		for _, i := range strings.Split(c.String("run"), ";") {
+		for _, i := range c.StringSlice("run") {
 			groups := re.FindStringSubmatch(i)
 
 			// name of function
@@ -111,7 +118,7 @@ func main() {
 
 
 			case err := <-watcher.Errors:
-				log.Println("error:", err)
+				return err
 			}
 		}
 
