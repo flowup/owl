@@ -1,4 +1,9 @@
 # Owl
+##Installation
+```bash
+$ go get github.com/flowup/owl/cmd/owl
+```
+
 ## Overview
 Owl watches all files in current folder and all files in its subfolders. Every time file changes it runs the command.
 ## Usage
