@@ -2,60 +2,59 @@ package main
 
 import (
 	"fmt"
-	"github.com/fsnotify/fsnotify"
+	"path/filepath"
 	"os"
 	"log"
-	"io/ioutil"
-	"os/exec"
 	"regexp"
+	"os/exec"
+	"github.com/fsnotify/fsnotify"
 )
-
-// all paths for watching
-var Paths []string
-
-func getPaths(folder string) {
-	files, _ := ioutil.ReadDir(folder)
-	folder = folder + "/"
-
-	for _, f := range files {
-		// is not dir
-		if !f.IsDir() {
-			continue
-		}
-
-		//ignore this (.git, vendor)
-		if string([]rune(f.Name())[0]) == "." || f.Name() == "vendor" {
-			continue
-		}
-
-		// connect name of folder with his path
-		path := folder + f.Name()
-		Paths = append(Paths, path)
-		getPaths(path)
-	}
-}
 
 func main() {
 
-	//set new watcher
+	// set new watcher
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		panic(err)
 	}
 
-	//get path to this dir
+	// get path to this dir
 	path, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 	// append path to global paths
-	Paths = append(Paths, path)
+	dirList := []string{}
 
-	// find all paths in this dir (recursively)
-	getPaths(path)
+	err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Print(err)
+			return nil
+		}
+
+		// this files are ignore
+		ignoreList := []string{"vendor", ".glide", ".git"}
+
+		// check if file is not in ignorelist
+		for _, i := range ignoreList {
+			if info.Name() == i {
+				return filepath.SkipDir
+			}
+		}
+
+		// append dir to list
+		if info.IsDir() {
+			dirList = append(dirList, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// add all paths for watching
-	for _, path := range Paths {
+	for _, path := range dirList {
 		watcher.Add(path)
 	}
 
