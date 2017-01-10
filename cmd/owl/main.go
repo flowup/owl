@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/flowup/owl/.glide/cache/src/https-github.com-urfave-cli"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +9,7 @@ import (
 	"os/exec"
 	"github.com/fsnotify/fsnotify"
 	"errors"
+	"github.com/urfave/cli"
 )
 
 var (
