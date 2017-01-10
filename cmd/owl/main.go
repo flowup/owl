@@ -30,7 +30,7 @@ func main() {
 			Name: "ignore, i",
 			Usage:"All directories with name `IGNORE` are ignored",
 		},
-		cli.StringSliceFlag{
+		cli.StringFlag{
 			Name: "run, r",
 			Usage:"If is any file changed, run `RUN`",
 		},
@@ -93,6 +93,8 @@ func main() {
 			watcher.Add(path)
 		}
 
+		var command *exec.Cmd = nil
+
 		for {
 			select {
 			case ev := <-watcher.Events:
@@ -103,14 +105,21 @@ func main() {
 					if c.Bool("verbose") {
 						log.Println(ev.Name)
 					}
-
-					for _, r := range c.StringSlice("run") {
-						output, err := exec.Command("bash", "-c", r).CombinedOutput()
-						if err != nil {
-							os.Stderr.WriteString(err.Error())
+					
+					if command != nil {
+						err := command.Process.Kill()
+						if err != nil && err.Error() != "os: process already finished" {
+							panic(err)
 						}
-						fmt.Print(string(output))
+						command = nil
 					}
+
+					go func() {
+						command = exec.Command("bash", "-c", c.String("r"))
+
+						out, _ := command.CombinedOutput()
+						fmt.Print(string(out))
+					}()
 
 				}
 
