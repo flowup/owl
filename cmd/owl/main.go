@@ -20,6 +20,11 @@ func main() {
 	app.Name = "owl"
 	app.Usage = "owl watching all files in directory and when are changed, run the command"
 
+	cli.VersionFlag = cli.BoolFlag{
+		Name:  "version",
+		Usage: "print only the version",
+	}
+
 	app.Flags = []cli.Flag{
 		cli.StringSliceFlag{
 			Name: "ignore, i",
@@ -28,6 +33,10 @@ func main() {
 		cli.StringSliceFlag{
 			Name: "run, r",
 			Usage:"If is any file changed, run `RUN`",
+		},
+		cli.BoolFlag{
+			Name: "verbose, v",
+			Usage:"verbose mode",
 		},
 
 	}
@@ -87,9 +96,14 @@ func main() {
 		for {
 			select {
 			case ev := <-watcher.Events:
+
 				// Write is running only once
-				if ev.Op == fsnotify.Write {
+				if ev.Op == fsnotify.Chmod {
 					// execute of function with arguments
+					if c.Bool("verbose") {
+						log.Println(ev.Name)
+					}
+
 					for _, r := range c.StringSlice("run") {
 						output, err := exec.Command("bash", "-c", r).CombinedOutput()
 						if err != nil {
