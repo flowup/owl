@@ -1,15 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"log"
-	"regexp"
 	"os/exec"
 	"github.com/fsnotify/fsnotify"
 	"errors"
 	"github.com/urfave/cli"
+	"fmt"
 )
 
 var (
@@ -85,29 +84,14 @@ func main() {
 			watcher.Add(path)
 		}
 
-		// seperate argument into two parts
-		re := regexp.MustCompile("^([A-Za-z0-9]+)\\s?(.*)")
-
-		var name []string
-		var arq []string
-
-		for _, i := range c.StringSlice("run") {
-			groups := re.FindStringSubmatch(i)
-
-			// name of function
-			name = append(name, groups[1])
-			// his arguments
-			arq = append(arq, groups[2])
-		}
-
 		for {
 			select {
 			case ev := <-watcher.Events:
 				// Write is running only once
 				if ev.Op == fsnotify.Write {
 					// execute of function with arguments
-					for x, _ := range name {
-						output, err := exec.Command(name[x], arq[x]).CombinedOutput()
+					for _, r := range c.StringSlice("run") {
+						output, err := exec.Command("bash", "-c", r).CombinedOutput()
 						if err != nil {
 							os.Stderr.WriteString(err.Error())
 						}
