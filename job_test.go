@@ -88,5 +88,33 @@ func TestDebounceMoreJobs(t *testing.T) {
 	assert.NotNil(t, <-results)
 	assert.Equal(t, 0, len(results))
 
+}
+
+func TestScheduler(t *testing.T) {
+	jobs := make(chan Job)
+	amount := int64(10)
+
+	go func() {
+		jobs <- &fakeJob{}
+		jobs <- &fakeJob{}
+		jobs <- &fakeJob{}
+		jobs <- &fakeJob{}
+		jobs <- &fakeJob{}
+		jobs <- &fakeJob{}
+		time.Sleep(time.Duration(110) * time.Millisecond)
+		jobs <- &fakeJob{}
+		jobs <- &fakeJob{}
+		jobs <- &fakeJob{}
+		time.Sleep(time.Duration(11) * time.Millisecond)
+		jobs <- &fakeJob{}
+		jobs <- &fakeJob{}
+	}()
+	debounced := Debounce(jobs, amount)
+
+	results := Scheduler(debounced)
+
+	assert.NotNil(t, <-results)
+	assert.NotNil(t, <-results)
+	assert.NotNil(t, <-results)
 
 }
