@@ -1,5 +1,7 @@
 FROM golang
 
+ENV GOBIN /go/bin
+
 # Need this for dependency management
 RUN curl https://glide.sh/get | sh
 
