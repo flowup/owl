@@ -15,7 +15,4 @@ $ go get github.com/flowup/owl/cmd/owl
 - `-t` or `--time` waiting time for executing in miliseconds (default 5000)<br>
 
 ###Example
-`owl -run 'echo \"some file was changed\"' --ignore \"vendor\" --ignore \".git\" --ignore \".glide\" -t 10000`
-
-### Working with Docker
-add to Dockerfile `RUN go get -u github.com/flowup/owl/cmd/owl`
+`owl --run 'echo \"some file was changed\"' --ignore 'vendor' --ignore ".git" --ignore .glide -t 10000`

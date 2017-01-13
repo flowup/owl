@@ -12,9 +12,7 @@ services:
     volumes:
      - .:${PROJECT_PATH}:Z
     working_dir: ${PROJECT_PATH}
-    command: bash -c "glide install && go install ${CMD_GOPATH} && ${PROJECT_CMD_NAME} -r 'for i in {1..10}; do echo \"hello $i\" ; sleep 1 ;done; echo \"----------\" ' --ignore \"vendor\" --ignore \".git\" --ignore \".glide\" -v"
-    # for testing on goconvey, in browser open http://localhost:8080/
-    #command: bash -c "glide install && goconvey -timeout 5s -host 0.0.0.0"
+    command: bash -c "glide install && goconvey -timeout 5s -host 0.0.0.0"
     ports:
       - 3000:3000
       - 3001:3001

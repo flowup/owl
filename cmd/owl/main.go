@@ -9,13 +9,40 @@ import (
 	"github.com/urfave/cli"
 	"github.com/flowup/owl"
 	"strconv"
+	"os/exec"
+	"fmt"
 )
 
 var (
 	errFlagRunIsPresent = errors.New("flag --run or -r is required ")
 )
 
-type fakeJob struct {
+type WatcherJob struct {
+	command string
+	cmd     *exec.Cmd
+}
+
+func NewWatcherJob(command string) *WatcherJob {
+	return &WatcherJob{
+		command: command,
+		cmd:     nil,
+	}
+}
+
+func (this*WatcherJob) Start() owl.JobResult {
+	this.cmd = exec.Command("bash", "-c", this.command)
+	out, err := this.cmd.CombinedOutput()
+	return owl.JobResult{
+		Output: string(out),
+		Error:  err,
+	}
+}
+
+func (this *WatcherJob) Stop() error {
+	if this.cmd != nil && this.cmd.Process != nil {
+		return this.cmd.Process.Kill()
+	}
+	return nil
 }
 
 func main() {
@@ -119,14 +146,14 @@ func main() {
 
 					// Write is running only once
 					if ev.Op == fsnotify.Chmod {
+
 						// execute of function with arguments
 						if c.Bool("verbose") {
 							log.Println(ev.Name)
 						}
 
 						// add fakeJob to jobs
-						jobs <- &fakeJob{}
-
+						jobs <- &WatcherJob{command:c.String("run")}
 					}
 				case err := <-watcher.Errors:
 					log.Fatal(err)
@@ -135,13 +162,13 @@ func main() {
 		}()
 
 		debounced := owl.Debounce(jobs, amount)
-		results := owl.Scheduler(debounced, c.String("run"))
+		results := owl.Scheduler(debounced)
 
 		for {
-			select {
-			case <-results:
-			}
+			out := <-results
+			fmt.Print(out.Output)
 		}
+
 		return nil
 	}
 	app.Run(os.Args)

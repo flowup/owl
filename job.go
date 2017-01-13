@@ -1,20 +1,22 @@
 package owl
 
 import (
-	"os/exec"
-	"fmt"
-	"sync"
 	"time"
 )
 
 type Job interface {
+	Start() JobResult
+	Stop() error
 }
 
 type JobResult struct {
+	Output string
+	Error  error
 }
 
 // Debounce debounces the channel of jobs by the given amount of
 // milliseconds
+// ToDO: the for cycle will never stop until the application stops. May be potential leak in a future
 func Debounce(jobs <-chan Job, amount int64) <-chan Job {
 	debouncedJobs := make(chan Job)
 
@@ -41,34 +43,30 @@ func Debounce(jobs <-chan Job, amount int64) <-chan Job {
 	return debouncedJobs
 }
 
-// Scheduler run the newest job and killed old one
-func Scheduler(jobs <- chan Job, run string) <-chan JobResult {
+// Scheduler continually runs jobs read from the jobs channel. If any job is running within
+// the scheduler, it will be killed and replaced by the next job
+func Scheduler(jobs <- chan Job) <-chan JobResult {
 	schedulerJobs := make(chan JobResult)
-	var mutex = &sync.Mutex{}
-	var command *exec.Cmd
+
+	var runningJob Job = nil
+
 	go func() {
 		for {
-			select {
-			case <-jobs:
-				mutex.Lock()
-
-				// check if another command is running
-				// if is, kill it
-				if command != nil {
-					if command.Process != nil {
-						command.Process.Kill()
-					}
-				}
-				go func() {
-					mutex.Unlock()
-					// executing
-					command = exec.Command("bash", "-c", run)
-					out, _ := command.CombinedOutput()
-					fmt.Print(string(out))
-					schedulerJobs <- JobResult{}
-				}()
+			job := <-jobs
+			// check if another command is running
+			if runningJob != nil {
+				runningJob.Stop()
 			}
+
+			// swap jobs
+			runningJob = job
+
+			go func() {
+				// executing
+				schedulerJobs <- runningJob.Start()
+			}()
 		}
 	}()
+
 	return schedulerJobs
 }

@@ -1,12 +1,25 @@
-hash: 6140e6ec9c531a121cde8beef2d0bb215e3df2f800527a0a777baf6ee3dbac96
-updated: 2017-01-06T15:25:13.562491736Z
+hash: 09042d69c2f3bfefe65eb2dfd5a624afa5cb437c9a1ac55f63785c6d8d6dd0d3
+updated: 2017-01-11T10:03:29.543302736Z
 imports:
 - name: github.com/fsnotify/fsnotify
   version: fd9ec7deca8bf46ecd2a795baaacf2b3a9be1197
+- name: github.com/stretchr/testify
+  version: 2402e8e7a02fc811447d11f881aa9746cdc57983
+  subpackages:
+  - '...'
+  - assert
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: golang.org/x/sys
   version: d75a52659825e75fff6158388dddc6a5b04f9ba5
   subpackages:
   - unix
-testImports: []
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib

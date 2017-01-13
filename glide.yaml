@@ -5,3 +5,6 @@ import:
   subpackages:
   - unix
 - package: github.com/urfave/cli
+- package: github.com/stretchr/testify
+  subpackages:
+  - '...'
