@@ -7,14 +7,16 @@ services:
     working_dir: ${PROJECT_PATH}
     command: bash -c "glide init --non-interactive"
   dev:
+    build: .
     image: flowup/godev
     volumes:
      - .:${PROJECT_PATH}:Z
     working_dir: ${PROJECT_PATH}
-    command: bash -c "glide install && go install ${CMD_GOPATH} && ${PROJECT_CMD_NAME} 'echo \"some file was changed\"'"
+    command: bash -c "glide install && goconvey -timeout 5s -host 0.0.0.0"
     ports:
       - 3000:3000
       - 3001:3001
+      - 8080:8080
     links:
      - dev_db
   test-dev:

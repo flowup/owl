@@ -4,16 +4,46 @@ import (
 	"os"
 	"path/filepath"
 	"log"
-	"os/exec"
 	"github.com/fsnotify/fsnotify"
 	"errors"
 	"github.com/urfave/cli"
+	"github.com/flowup/owl"
+	"strconv"
+	"os/exec"
 	"fmt"
 )
 
 var (
 	errFlagRunIsPresent = errors.New("flag --run or -r is required ")
 )
+
+type WatcherJob struct {
+	command string
+	cmd     *exec.Cmd
+}
+
+func NewWatcherJob(command string) *WatcherJob {
+	return &WatcherJob{
+		command: command,
+		cmd:     nil,
+	}
+}
+
+func (this*WatcherJob) Start() owl.JobResult {
+	this.cmd = exec.Command("bash", "-c", this.command)
+	out, err := this.cmd.CombinedOutput()
+	return owl.JobResult{
+		Output: string(out),
+		Error:  err,
+	}
+}
+
+func (this *WatcherJob) Stop() error {
+	if this.cmd != nil && this.cmd.Process != nil {
+		return this.cmd.Process.Kill()
+	}
+	return nil
+}
 
 func main() {
 	app := cli.NewApp()
@@ -38,10 +68,24 @@ func main() {
 			Name: "verbose, v",
 			Usage:"verbose mode",
 		},
+		cli.StringFlag{
+			Name: "time, t",
+			Usage:"Waiting time for executing in miliseconds",
+		},
 
 	}
 
 	app.Action = func(c *cli.Context) error {
+		// default time is 5s
+		amount := int64(5000)
+		err := errors.New("")
+
+		if c.String("t") != "" {
+			amount, err = strconv.ParseInt(c.String("t"), 10, 64)
+			if err != nil {
+				panic(err)
+			}
+		}
 
 		if c.String("run") == "" {
 			return errFlagRunIsPresent
@@ -93,45 +137,39 @@ func main() {
 			watcher.Add(path)
 		}
 
-		var command *exec.Cmd = nil
+		jobs := make(chan owl.Job, 10)
+
+		go func() {
+			for {
+				select {
+				case ev := <-watcher.Events:
+
+					// Write is running only once
+					if ev.Op == fsnotify.Chmod {
+
+						// execute of function with arguments
+						if c.Bool("verbose") {
+							log.Println(ev.Name)
+						}
+
+						// add fakeJob to jobs
+						jobs <- &WatcherJob{command:c.String("run")}
+					}
+				case err := <-watcher.Errors:
+					log.Fatal(err)
+				}
+			}
+		}()
+
+		debounced := owl.Debounce(jobs, amount)
+		results := owl.Scheduler(debounced)
 
 		for {
-			select {
-			case ev := <-watcher.Events:
-
-				// Write is running only once
-				if ev.Op == fsnotify.Chmod {
-					// execute of function with arguments
-					if c.Bool("verbose") {
-						log.Println(ev.Name)
-					}
-					
-					if command != nil {
-						err := command.Process.Kill()
-						if err != nil && err.Error() != "os: process already finished" {
-							panic(err)
-						}
-						command = nil
-					}
-
-					go func() {
-						command = exec.Command("bash", "-c", c.String("r"))
-
-						out, _ := command.CombinedOutput()
-						fmt.Print(string(out))
-					}()
-
-				}
-
-
-			case err := <-watcher.Errors:
-				return err
-			}
+			out := <-results
+			fmt.Print(out.Output)
 		}
 
 		return nil
 	}
-
 	app.Run(os.Args)
-
 }
