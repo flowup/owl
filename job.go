@@ -1,10 +1,10 @@
 package owl
 
 import (
-	"time"
-	"sync"
 	"os/exec"
 	"fmt"
+	"sync"
+	"time"
 )
 
 type Job interface {
@@ -23,46 +23,52 @@ func Debounce(jobs <-chan Job, amount int64) <-chan Job {
 
 	go func() {
 		for {
-			select {
-			case cache = <-jobs:
-				continue
-			case <-time.After(time.Duration(amount) * time.Millisecond):
-				// if we don't have cache, just continue
-				if cache == nil {
+			cache = <-jobs
+			time.Sleep(time.Duration(amount))
+			// draining the channel
+			draining := true
+			for draining {
+				select {
+				case cache = <-jobs:
 					continue
+				default:
+					draining = false
 				}
-
-				debouncedJobs <- cache
-				cache = nil
 			}
+			debouncedJobs <- cache
 		}
 	}()
-
 	return debouncedJobs
 }
 
-func Scheduler(jobs <- chan Job) <-chan JobResult {
+// Scheduler run the newest job and killed old one
+func Scheduler(jobs <- chan Job, run string) <-chan JobResult {
 	schedulerJobs := make(chan JobResult)
 	var mutex = &sync.Mutex{}
-
 	var command *exec.Cmd
 	go func() {
 		for {
 			select {
 			case <-jobs:
-				if command != nil {
-					command.Process.Kill()
-				}
 				mutex.Lock()
-				command = exec.Command("bash", "-c", "echo \"Good job, Sir\"")
-				out, _ := command.CombinedOutput()
-				fmt.Print(string(out))
-				command = nil
-				schedulerJobs <- JobResult{}
-				mutex.Unlock()
+
+				// check if another command is running
+				// if is, kill it
+				if command != nil {
+					if command.Process != nil {
+						command.Process.Kill()
+					}
+				}
+				go func() {
+					mutex.Unlock()
+					// executing
+					command = exec.Command("bash", "-c", run)
+					out, _ := command.CombinedOutput()
+					fmt.Print(string(out))
+					schedulerJobs <- JobResult{}
+				}()
 			}
 		}
 	}()
 	return schedulerJobs
-
 }

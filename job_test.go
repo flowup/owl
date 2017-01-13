@@ -111,10 +111,11 @@ func TestScheduler(t *testing.T) {
 	}()
 	debounced := Debounce(jobs, amount)
 
-	results := Scheduler(debounced)
+	results := Scheduler(debounced, "echo \"Good job, Sir\"")
 
 	assert.NotNil(t, <-results)
 	assert.NotNil(t, <-results)
 	assert.NotNil(t, <-results)
+	assert.Equal(t, 0, len(results))
 
 }
