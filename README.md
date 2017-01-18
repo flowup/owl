@@ -12,7 +12,7 @@ $ go get github.com/flowup/owl/cmd/owl
 ###Flags 
 - `-i` or `--ignore` to ignore folder <br>  
 - `-r` or `--run` for specific command <br>
-- `-t` or `--time` waiting time for executing in miliseconds (default 5000)<br>
+- `-t` or `--time` waiting time for executing in miliseconds (default 500)<br>
 
 ###Example
 `owl --run 'echo \"some file was changed\"' --ignore 'vendor' --ignore ".git" --ignore .glide -t 10000`

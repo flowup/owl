@@ -76,8 +76,8 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) error {
-		// default time is 5s
-		amount := int64(5000)
+		// default time is 500ms
+		amount := int64(500)
 		err := errors.New("")
 
 		if c.String("t") != "" {

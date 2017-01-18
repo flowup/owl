@@ -26,7 +26,7 @@ func Debounce(jobs <-chan Job, amount int64) <-chan Job {
 	go func() {
 		for {
 			cache = <-jobs
-			time.Sleep(time.Duration(amount))
+			time.Sleep(time.Duration(amount) * time.Millisecond)
 			// draining the channel
 			draining := true
 			for draining {
