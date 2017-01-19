@@ -6,5 +6,6 @@ import:
   - unix
 - package: github.com/urfave/cli
 - package: github.com/stretchr/testify
+- package: github.com/uber-go/zap
   subpackages:
   - '...'

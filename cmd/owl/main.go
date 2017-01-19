@@ -3,11 +3,11 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"log"
 	"github.com/fsnotify/fsnotify"
 	"errors"
 	"github.com/urfave/cli"
 	"github.com/flowup/owl"
+	"github.com/uber-go/zap"
 	"strconv"
 	"os/exec"
 	"fmt"
@@ -80,6 +80,14 @@ func main() {
 		amount := int64(500)
 		err := errors.New("")
 
+		loglevel := zap.WarnLevel
+
+		if c.Bool("v") {
+			loglevel = zap.InfoLevel
+		}
+
+		logger := zap.New(zap.NewTextEncoder(), loglevel)
+
 		if c.String("t") != "" {
 			amount, err = strconv.ParseInt(c.String("t"), 10, 64)
 			if err != nil {
@@ -129,7 +137,7 @@ func main() {
 		})
 
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatal(err.Error())
 		}
 
 		// add all paths for watching
@@ -147,16 +155,14 @@ func main() {
 					// Write is running only once
 					if ev.Op == fsnotify.Chmod {
 
-						// execute of function with arguments
-						if c.Bool("verbose") {
-							log.Println(ev.Name)
-						}
+						// log event
+						logger.Info(ev.Name)
 
 						// add fakeJob to jobs
 						jobs <- &WatcherJob{command:c.String("run")}
 					}
 				case err := <-watcher.Errors:
-					log.Fatal(err)
+					logger.Fatal(err.Error())
 				}
 			}
 		}()
