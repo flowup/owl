@@ -10,6 +10,7 @@ import (
 	"github.com/uber-go/zap"
 	"strconv"
 	"os/exec"
+	"github.com/spf13/viper"
 	"fmt"
 )
 
@@ -76,28 +77,44 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) error {
-		// default time is 500ms
-		amount := int64(500)
-		err := errors.New("")
+
+		viper.SetConfigType("yaml")
+		viper.SetConfigName("owl")
+		viper.AddConfigPath(".")
+
+		err := viper.ReadInConfig()
+		viper.SetDefault("time", 500)
+		viper.SetDefault("verbose", false)
+		viper.SetDefault("ignore", make([]string, 0))
+
+		// If no config is present in current folder, read options from args
+		if err != nil {
+			viper.Set("run", c.String("run"))
+			if c.Bool("v") {
+				viper.Set("verbose", true)
+			}
+			if c.String("t") != "" {
+				time, err := strconv.ParseInt(c.String("t"), 10, 64)
+				if err != nil {
+					panic(err)
+				}
+				viper.Set("time", time)
+			}
+			viper.Set("ignore", c.StringSlice("ignore"))
+		}
+
+		if viper.GetString("run") == "" {
+			return errFlagRunIsPresent
+		}
+
+		err = errors.New("")
 
 		loglevel := zap.WarnLevel
-
-		if c.Bool("v") {
+		if viper.GetBool("verbose") {
 			loglevel = zap.InfoLevel
 		}
 
 		logger := zap.New(zap.NewTextEncoder(), loglevel)
-
-		if c.String("t") != "" {
-			amount, err = strconv.ParseInt(c.String("t"), 10, 64)
-			if err != nil {
-				panic(err)
-			}
-		}
-
-		if c.String("run") == "" {
-			return errFlagRunIsPresent
-		}
 
 		// set new watcher
 		watcher, err := fsnotify.NewWatcher()
@@ -115,7 +132,7 @@ func main() {
 
 		// this files are ignore
 		ignoreList := make(map[string]bool)
-		for _, dir := range (c.StringSlice("ignore")) {
+		for _, dir := range (viper.GetStringSlice("ignore")) {
 			ignoreList[dir] = true
 		}
 
@@ -159,7 +176,7 @@ func main() {
 						logger.Info(ev.Name)
 
 						// add fakeJob to jobs
-						jobs <- &WatcherJob{command:c.String("run")}
+						jobs <- &WatcherJob{command:viper.GetString("run")}
 					}
 				case err := <-watcher.Errors:
 					logger.Fatal(err.Error())
@@ -167,7 +184,7 @@ func main() {
 			}
 		}()
 
-		debounced := owl.Debounce(jobs, amount)
+		debounced := owl.Debounce(jobs, viper.GetInt64("time"))
 		results := owl.Scheduler(debounced)
 
 		for {
