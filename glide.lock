@@ -1,21 +1,62 @@
-hash: 09042d69c2f3bfefe65eb2dfd5a624afa5cb437c9a1ac55f63785c6d8d6dd0d3
-updated: 2017-01-11T10:03:29.543302736Z
+hash: 47832320225f2baab09832f3ea0729083bfe290050e62dc5217673c43bdcd2e8
+updated: 2017-01-19T11:54:45.267947925Z
 imports:
 - name: github.com/fsnotify/fsnotify
   version: fd9ec7deca8bf46ecd2a795baaacf2b3a9be1197
+- name: github.com/hashicorp/hcl
+  version: eb6f65b2d77ed5078887f960ff570fbddbbeb49d
+  subpackages:
+  - hcl/ast
+  - hcl/parser
+  - hcl/scanner
+  - hcl/strconv
+  - hcl/token
+  - json/parser
+  - json/scanner
+  - json/token
+- name: github.com/magiconair/properties
+  version: b3b15ef068fd0b17ddf408a23669f20811d194d2
+- name: github.com/mitchellh/mapstructure
+  version: ed105d635dfa9ea7133f7c79f1eb36203fc3a156
+- name: github.com/pelletier/go-buffruneio
+  version: df1e16fde7fc330a0ca68167c23bf7ed6ac31d6d
+- name: github.com/pelletier/go-toml
+  version: a1f048ba24490f9b0674a67e1ce995d685cddf4a
+- name: github.com/spf13/afero
+  version: 72b31426848c6ef12a7a8e216708cb0d1530f074
+  subpackages:
+  - mem
+- name: github.com/spf13/cast
+  version: 56a7ecbeb18dde53c6db4bd96b541fd9741b8d44
+- name: github.com/spf13/jwalterweatherman
+  version: fa7ca7e836cf3a8bb4ebf799f472c12d7e903d66
+- name: github.com/spf13/pflag
+  version: 51268031d79952516489a9f8aa34e9709b98d946
+- name: github.com/spf13/viper
+  version: 5ed0fc31f7f453625df314d8e66b9791e8d13003
 - name: github.com/stretchr/testify
   version: 2402e8e7a02fc811447d11f881aa9746cdc57983
   subpackages:
-  - '...'
   - assert
-- name: github.com/urfave/cli
-  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
+- name: github.com/uber-go/atomic
+  version: 3b8db5e93c4c02efbc313e17b2e796b0914a01fb
 - name: github.com/uber-go/zap
   version: a5783ee4b216a927da8f839c45cfbf9d694e1467
+  subpackages:
+  - '...'
+- name: github.com/urfave/cli
+  version: f1be59ff3d239f0942b201619030d302bce912cc
 - name: golang.org/x/sys
   version: d75a52659825e75fff6158388dddc6a5b04f9ba5
   subpackages:
   - unix
+- name: golang.org/x/text
+  version: 11dbc599981ccdf4fb18802a28392a8bcf7a9395
+  subpackages:
+  - transform
+  - unicode/norm
+- name: gopkg.in/yaml.v2
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports:
 - name: github.com/davecgh/go-spew
   version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
