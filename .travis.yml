@@ -3,4 +3,8 @@ go:
   - 1.6
   - 1.7.x
   - master
+install:
+  - go get -v github.com/Masterminds/glide
+  - cd $GOPATH/src/github.com/Masterminds/glide && git checkout f0314e471b505236db53f6bf114ca44d0e1b2989 && go install && cd -
+  - glide install
 script: go test -v ./...
