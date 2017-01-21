@@ -1,5 +1,7 @@
 # Owl
 
+[![Build Status](https://travis-ci.org/flowup/owl.svg?branch=master)](https://travis-ci.org/flowup/owl)
+
 ## Overview
 :rocket:-speed file-watcher written in Golang, Owl is mostly suitable as an automatic build/run/test tool.
 
