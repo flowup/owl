@@ -1,29 +1,38 @@
 # Owl
+
 ## Overview
-Owl watches all files in current folder and all files in its subfolders. Every time file changes it runs the command.
+:rocket:-speed file-watcher written in Golang, Owl is mostly suitable as an automatic build/run/test tool.
 
 ##Installation
 ```bash
-$ go get github.com/flowup/owl/cmd/owl
+$ go get github.com/flowup/owl/cmd/owl # this will install the binary in $GOBIN
 ```
 
 ## Usage
 
-###Flags 
-- `-i` or `--ignore` to ignore folder <br>  
-- `-r` or `--run` for specific command <br>
-- `-t` or `--time` waiting time for executing in miliseconds (default 500)<br>
+You can use **owl** to simply run tests when anything within the current folder(recursively) changes. The `-i` flag will ignore a directory named `bin`
 
-###Config File
-If no flags are present Owl tries to read config file `owl.yaml` like in example:
+```bash
+$ owl -r 'go test ./...' -i bin
+```
+
+### Flags
+
+- `-i` or `--ignore` to ignore files and folders
+- `-r` or `--run` for specific command
+- `-t` or `--time` debounce time for filesystem events before command execution in miliseconds (default 500)
+
+### Config file owl.yaml
+
+You can set default settings for the `owl` command within the folder with config file.
+
+> :robot: Note that any environment variables and flags will override this configuration
+
 ```
 run: "echo \"Hello Owl!\""
 time: 5000
 verbose: true
 ignore:
- - ".git"
+ - vendor"
  - "bin"
 ```
-
-###Example
-`owl --run 'echo \"some file was changed\"' --ignore 'vendor' --ignore ".git" --ignore .glide -t 10000`
