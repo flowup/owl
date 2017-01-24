@@ -70,7 +70,7 @@ func main() {
 			Usage:"verbose mode",
 		},
 		cli.StringFlag{
-			Name: "time, t",
+			Name: "debounce, d",
 			Usage:"Waiting time for executing in miliseconds",
 		},
 
@@ -83,7 +83,7 @@ func main() {
 		viper.AddConfigPath(".")
 
 		err := viper.ReadInConfig()
-		viper.SetDefault("time", 500)
+		viper.SetDefault("debounce", 500)
 		viper.SetDefault("verbose", false)
 		viper.SetDefault("ignore", make([]string, 0))
 
@@ -93,12 +93,12 @@ func main() {
 			if c.Bool("v") {
 				viper.Set("verbose", true)
 			}
-			if c.String("t") != "" {
-				time, err := strconv.ParseInt(c.String("t"), 10, 64)
+			if c.String("d") != "" {
+				debounce, err := strconv.ParseInt(c.String("d"), 10, 64)
 				if err != nil {
 					panic(err)
 				}
-				viper.Set("time", time)
+				viper.Set("debounce", debounce)
 			}
 			viper.Set("ignore", c.StringSlice("ignore"))
 		}
@@ -184,7 +184,7 @@ func main() {
 			}
 		}()
 
-		debounced := owl.Debounce(jobs, viper.GetInt64("time"))
+		debounced := owl.Debounce(jobs, viper.GetInt64("debounce"))
 		results := owl.Scheduler(debounced)
 
 		for {
