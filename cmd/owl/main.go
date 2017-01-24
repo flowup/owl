@@ -130,8 +130,12 @@ func main() {
 		// append path to global paths
 		dirList := []string{}
 
-		// this files are ignore
+		// this files are ignored by default
 		ignoreList := make(map[string]bool)
+		ignoreList["vendor"] = true
+		ignoreList["node_modules"] = true
+		ignoreList["bower_components"] = true
+
 		for _, dir := range (viper.GetStringSlice("ignore")) {
 			ignoreList[dir] = true
 		}
