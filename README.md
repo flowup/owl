@@ -22,7 +22,7 @@ $ owl -r 'go test ./...' -i bin
 
 - `-i` or `--ignore` to ignore files and folders
 - `-r` or `--run` for specific command
-- `-t` or `--time` debounce time for filesystem events before command execution in miliseconds (default 500)
+- `-d` or `--debounce` debounce time for filesystem events before command execution in miliseconds (default 500)
 
 ### Config file owl.yaml
 
@@ -32,7 +32,7 @@ You can set default settings for the `owl` command within the folder with config
 
 ```
 run: "echo \"Hello Owl!\""
-time: 5000
+debounce: 5000
 verbose: true
 ignore:
  - vendor"
