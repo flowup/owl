@@ -35,6 +35,6 @@ run: "echo \"Hello Owl!\""
 debounce: 5000
 verbose: true
 ignore:
- - vendor"
+ - "vendor"
  - "bin"
 ```
