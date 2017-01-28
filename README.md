@@ -32,7 +32,7 @@ You can set default settings for the `owl` command within the folder with config
 
 ```
 run: "echo \"Hello Owl!\""
-debounce: 5000
+debounce: 100
 verbose: true
 ignore:
  - "vendor"
