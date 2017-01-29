@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"github.com/spf13/viper"
 	"fmt"
+	"bufio"
 )
 
 var (
@@ -30,13 +31,35 @@ func NewWatcherJob(command string) *WatcherJob {
 	}
 }
 
-func (this*WatcherJob) Start() owl.JobResult {
+func (this*WatcherJob) Start() error {
 	this.cmd = exec.Command("bash", "-c", this.command)
-	out, err := this.cmd.CombinedOutput()
-	return owl.JobResult{
-		Output: string(out),
-		Error:  err,
+
+	stderr, err := this.cmd.StderrPipe()
+	if err != nil {
+		return err
 	}
+
+	stdout, err := this.cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	errscanner := bufio.NewScanner(stderr)
+	outscanner := bufio.NewScanner(stdout)
+
+	go func() {
+		for {
+			if outscanner.Scan() {
+				fmt.Println(outscanner.Text())
+			} else if errscanner.Scan() {
+				fmt.Println(errscanner.Text())
+			} else {
+				break
+			}
+		}
+	}()
+
+	return this.cmd.Run()
 }
 
 func (this *WatcherJob) Stop() error {
@@ -192,8 +215,10 @@ func main() {
 		results := owl.Scheduler(debounced)
 
 		for {
-			out := <-results
-			fmt.Print(out.Output)
+			err := <-results
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		}
 
 		return nil

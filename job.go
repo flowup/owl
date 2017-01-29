@@ -5,7 +5,7 @@ import (
 )
 
 type Job interface {
-	Start() JobResult
+	Start() error
 	Stop() error
 }
 
@@ -45,8 +45,8 @@ func Debounce(jobs <-chan Job, amount int64) <-chan Job {
 
 // Scheduler continually runs jobs read from the jobs channel. If any job is running within
 // the scheduler, it will be killed and replaced by the next job
-func Scheduler(jobs <- chan Job) <-chan JobResult {
-	schedulerJobs := make(chan JobResult)
+func Scheduler(jobs <- chan Job) <-chan error {
+	schedulerJobs := make(chan error)
 
 	var runningJob Job = nil
 
