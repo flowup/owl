@@ -9,11 +9,6 @@ type Job interface {
 	Stop() error
 }
 
-type JobResult struct {
-	Output string
-	Error  error
-}
-
 // Debounce debounces the channel of jobs by the given amount of
 // milliseconds
 // ToDO: the for cycle will never stop until the application stops. May be potential leak in a future

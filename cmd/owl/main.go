@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 	"fmt"
 	"bufio"
+	"io"
 )
 
 var (
@@ -22,24 +23,26 @@ var (
 type WatcherJob struct {
 	command string
 	cmd     *exec.Cmd
+	outpipe io.Writer
 }
 
 func NewWatcherJob(command string) *WatcherJob {
 	return &WatcherJob{
 		command: command,
 		cmd:     nil,
+		outpipe: os.Stdout,
 	}
 }
 
-func (this*WatcherJob) Start() error {
-	this.cmd = exec.Command("bash", "-c", this.command)
+func (job *WatcherJob) Start() error {
+	job.cmd = exec.Command("bash", "-c", job.command)
 
-	stderr, err := this.cmd.StderrPipe()
+	stderr, err := job.cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
 
-	stdout, err := this.cmd.StdoutPipe()
+	stdout, err := job.cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
@@ -50,21 +53,21 @@ func (this*WatcherJob) Start() error {
 	go func() {
 		for {
 			if outscanner.Scan() {
-				fmt.Println(outscanner.Text())
+				fmt.Fprintln(job.outpipe, outscanner.Text())
 			} else if errscanner.Scan() {
-				fmt.Println(errscanner.Text())
+				fmt.Fprintln(job.outpipe, errscanner.Text())
 			} else {
 				break
 			}
 		}
 	}()
 
-	return this.cmd.Run()
+	return job.cmd.Run()
 }
 
-func (this *WatcherJob) Stop() error {
-	if this.cmd != nil && this.cmd.Process != nil {
-		return this.cmd.Process.Kill()
+func (job *WatcherJob) Stop() error {
+	if job.cmd != nil && job.cmd.Process != nil {
+		return job.cmd.Process.Kill()
 	}
 	return nil
 }
@@ -145,7 +148,7 @@ func main() {
 			panic(err)
 		}
 
-		// get path to this dir
+		// get path to job dir
 		path, err := os.Getwd()
 		if err != nil {
 			panic(err)
@@ -153,7 +156,7 @@ func main() {
 		// append path to global paths
 		dirList := []string{}
 
-		// this files are ignored by default
+		// job files are ignored by default
 		ignoreList := make(map[string]bool)
 		ignoreList["vendor"] = true
 		ignoreList["node_modules"] = true
@@ -203,7 +206,9 @@ func main() {
 						logger.Info(ev.Name)
 
 						// add fakeJob to jobs
-						jobs <- &WatcherJob{command:viper.GetString("run")}
+						jobs <- &WatcherJob{
+							command:viper.GetString("run"),
+							outpipe: os.Stdout}
 					}
 				case err := <-watcher.Errors:
 					logger.Fatal(err.Error())
