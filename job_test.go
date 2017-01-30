@@ -15,11 +15,11 @@ func NewFakeJob() *FakeJob {
 	}
 }
 
-func (this*FakeJob) Start() error {
+func (job *FakeJob) Start() error {
 	return nil
 }
 
-func (this *FakeJob) Stop() error {
+func (job *FakeJob) Stop() error {
 	return nil
 }
 
