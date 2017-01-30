@@ -4,7 +4,6 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"time"
-	"fmt"
 	"log"
 )
 
@@ -16,14 +15,11 @@ func NewFakeJob() *FakeJob {
 	}
 }
 
-func (this*FakeJob) Start() JobResult {
-	return JobResult{
-		Output: "",
-		Error:  nil,
-	}
+func (job *FakeJob) Start() error {
+	return nil
 }
 
-func (this *FakeJob) Stop() error {
+func (job *FakeJob) Stop() error {
 	return nil
 }
 
@@ -133,11 +129,10 @@ func TestScheduler(t *testing.T) {
 
 	for i := 0; i < 3; i++ {
 		out := <-results
-		fmt.Print(out.Output)
-		if out.Error != nil {
-			log.Fatal(out.Error)
+		if out != nil {
+			log.Fatal(out)
 		}
-		assert.NotNil(t, out)
+		assert.Nil(t, out)
 
 	}
 
