@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"bufio"
 	"io"
+	"syscall"
 )
 
 var (
@@ -36,6 +37,7 @@ func NewWatcherJob(command string) *WatcherJob {
 
 func (job *WatcherJob) Start() error {
 	job.cmd = exec.Command("bash", "-c", job.command)
+	job.cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 
 	stderr, err := job.cmd.StderrPipe()
 	if err != nil {
@@ -67,7 +69,7 @@ func (job *WatcherJob) Start() error {
 
 func (job *WatcherJob) Stop() error {
 	if job.cmd != nil && job.cmd.Process != nil {
-		return job.cmd.Process.Kill()
+		return syscall.Kill(-job.cmd.Process.Pid, syscall.SIGKILL)
 	}
 	return nil
 }
