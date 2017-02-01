@@ -1,5 +1,7 @@
 # Owl
 
+![image](https://cloud.githubusercontent.com/assets/735160/22502250/740b53b8-e86c-11e6-8753-b58cb9909316.png)
+
 [![Build Status](https://travis-ci.org/flowup/owl.svg?branch=master)](https://travis-ci.org/flowup/owl) [![Coverage Status](https://coveralls.io/repos/github/flowup/owl/badge.svg?branch=master)](https://coveralls.io/github/flowup/owl?branch=master)
 
 ## Overview
