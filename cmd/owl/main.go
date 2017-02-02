@@ -155,7 +155,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		// append path to global paths
+
 		dirList := []string{}
 
 		// job files are ignored by default
@@ -196,6 +196,9 @@ func main() {
 
 		jobs := make(chan owl.Job, 10)
 
+		firstRun := make(chan bool, 1)
+		firstRun <- true
+
 		go func() {
 			for {
 				select {
@@ -207,13 +210,19 @@ func main() {
 						// log event
 						logger.Info(ev.Name)
 
-						// add fakeJob to jobs
+						// add Job to jobs
 						jobs <- &WatcherJob{
-							command:viper.GetString("run"),
+							command: viper.GetString("run"),
 							outpipe: os.Stdout}
 					}
 				case err := <-watcher.Errors:
 					logger.Fatal(err.Error())
+
+				case <-firstRun:
+					// add Job to jobs
+					jobs <- &WatcherJob{
+						command: viper.GetString("run"),
+						outpipe: os.Stdout}
 				}
 			}
 		}()
