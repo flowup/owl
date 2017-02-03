@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+// Job interface implements method Start, and Stop.
+// Start runs command and Stop sends kill signal
 type Job interface {
 	Start() error
 	Stop() error
@@ -43,7 +45,7 @@ func Debounce(jobs <-chan Job, amount int64) <-chan Job {
 func Scheduler(jobs <- chan Job) <-chan error {
 	schedulerJobs := make(chan error)
 
-	var runningJob Job = nil
+	var runningJob Job
 
 	go func() {
 		for {

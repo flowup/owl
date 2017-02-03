@@ -15,6 +15,7 @@ import (
 	"bufio"
 	"io"
 	"syscall"
+	"regexp"
 )
 
 var (
@@ -101,7 +102,10 @@ func main() {
 			Name: "debounce, d",
 			Usage:"Waiting time for executing in miliseconds",
 		},
-
+		cli.StringFlag{
+			Name: "filter, f",
+			Usage:"Files are filtered by expression",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -129,10 +133,16 @@ func main() {
 				viper.Set("debounce", debounce)
 			}
 			viper.Set("ignore", c.StringSlice("ignore"))
+			viper.Set("filter", c.StringSlice("filter"))
 		}
 
 		if viper.GetString("run") == "" {
 			return errFlagRunIsPresent
+		}
+
+		var rgxp *regexp.Regexp
+		if viper.GetString("filter") != "" {
+			rgxp = regexp.MustCompile(viper.GetString("filter"))
 		}
 
 		err = errors.New("")
@@ -146,6 +156,7 @@ func main() {
 
 		// set new watcher
 		watcher, err := fsnotify.NewWatcher()
+
 		if err != nil {
 			panic(err)
 		}
@@ -155,14 +166,16 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		// append path to global paths
+
 		dirList := []string{}
 
-		// job files are ignored by default
+		// job dir are ignored by default
 		ignoreList := make(map[string]bool)
 		ignoreList["vendor"] = true
 		ignoreList["node_modules"] = true
 		ignoreList["bower_components"] = true
+		ignoreList[".glide"] = true
+		ignoreList[".git"] = true
 
 		for _, dir := range (viper.GetStringSlice("ignore")) {
 			ignoreList[dir] = true
@@ -173,12 +186,11 @@ func main() {
 				return err
 			}
 
-			// check if file is not in ignorelist
-			if ignoreList[info.Name()] {
+			// check if dir is not in ignorelist
+			if ignoreList[info.Name()] && info.IsDir() {
 				return filepath.SkipDir
 			}
 
-			// append dir to list
 			if info.IsDir() {
 				dirList = append(dirList, path)
 			}
@@ -196,6 +208,14 @@ func main() {
 
 		jobs := make(chan owl.Job, 10)
 
+		// init job
+		watcherJob := &WatcherJob{
+			command: viper.GetString("run"),
+			outpipe: os.Stdout}
+
+		// to start the command at the start of the owl
+		jobs <- watcherJob
+
 		go func() {
 			for {
 				select {
@@ -204,13 +224,18 @@ func main() {
 					// Write is running only once
 					if ev.Op == fsnotify.Chmod {
 
+						// check if is set filter
+						if viper.GetString("filter") != "" {
+							if !rgxp.MatchString(ev.Name) {
+								break
+							}
+						}
+
 						// log event
 						logger.Info(ev.Name)
 
-						// add fakeJob to jobs
-						jobs <- &WatcherJob{
-							command:viper.GetString("run"),
-							outpipe: os.Stdout}
+						// add Job to jobs
+						jobs <- watcherJob
 					}
 				case err := <-watcher.Errors:
 					logger.Fatal(err.Error())
