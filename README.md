@@ -22,9 +22,10 @@ $ owl -r 'go test ./...' -i bin
 
 ### Flags
 
-- `-i` or `--ignore` to ignore files and folders
+- `-i` or `--ignore` to ignore files and folders (default: vendor, node_modules, bower_components, .glide, .git)
 - `-r` or `--run` for specific command
 - `-d` or `--debounce` debounce time for filesystem events before command execution in miliseconds (default 500)
+- `-f` or `--filter` files are filtered by regular expression
 
 ### Config file owl.yaml
 
@@ -39,4 +40,5 @@ verbose: true
 ignore:
  - "vendor"
  - "bin"
+filter: "go$"
 ```
