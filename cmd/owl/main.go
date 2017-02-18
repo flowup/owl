@@ -7,7 +7,7 @@ import (
 	"errors"
 	"github.com/urfave/cli"
 	"github.com/flowup/owl"
-	"github.com/uber-go/zap"
+	"go.uber.org/zap"
 	"strconv"
 	"os/exec"
 	"github.com/spf13/viper"
@@ -16,6 +16,7 @@ import (
 	"io"
 	"syscall"
 	"regexp"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
@@ -28,12 +29,22 @@ type WatcherJob struct {
 	outpipe io.Writer
 }
 
-func NewWatcherJob(command string) *WatcherJob {
-	return &WatcherJob{
-		command: command,
-		cmd:     nil,
-		outpipe: os.Stdout,
+func GetLogger(level zapcore.Level) *zap.Logger {
+
+	zapconfig := zap.NewProductionConfig()
+	zapconfig.Encoding = "console"
+	zapconfig.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	zapconfig.DisableStacktrace = true
+	zapconfig.DisableCaller = true
+	zapconfig.Level.SetLevel(level)
+
+	logger,err := zapconfig.Build()
+
+	if err != nil {
+		panic(err)
 	}
+
+	return logger
 }
 
 func (job *WatcherJob) Start() error {
@@ -102,7 +113,7 @@ func main() {
 			Name: "debounce, d",
 			Usage:"Waiting time for executing in miliseconds",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name: "filter, f",
 			Usage:"Files are filtered by expression",
 		},
@@ -119,7 +130,7 @@ func main() {
 		viper.SetDefault("verbose", false)
 		viper.SetDefault("ignore", make([]string, 0))
 
-		// If no config is present in current folder, read options from args
+		// If no config is presentr in current folder, read options from args
 		if err != nil {
 			viper.Set("run", c.String("run"))
 			if c.Bool("v") {
@@ -147,12 +158,13 @@ func main() {
 
 		err = errors.New("")
 
-		loglevel := zap.WarnLevel
-		if viper.GetBool("verbose") {
-			loglevel = zap.InfoLevel
-		}
+		var logger *zap.Logger
 
-		logger := zap.New(zap.NewTextEncoder(), loglevel)
+		if viper.GetBool("verbose") {
+			logger = GetLogger(zap.InfoLevel)
+		} else {
+			logger = GetLogger(zap.WarnLevel)
+		}
 
 		// set new watcher
 		watcher, err := fsnotify.NewWatcher()
