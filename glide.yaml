@@ -1,11 +1,10 @@
 package: github.com/flowup/owl
 import:
 - package: github.com/fsnotify/fsnotify
-- package: golang.org/x/sys
-  subpackages:
-  - unix
+- package: github.com/spf13/viper
 - package: github.com/urfave/cli
+- package: go.uber.org/zap
+testImport:
 - package: github.com/stretchr/testify
-- package: github.com/uber-go/zap
   subpackages:
-  - '...'
+  - assert
