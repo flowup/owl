@@ -218,7 +218,7 @@ func main() {
 			watcher.Add(path)
 		}
 
-		jobs := make(chan owl.Job, 10)
+		jobs := make(chan owl.Job, 20)
 
 		// init job
 		watcherJob := &WatcherJob{
@@ -233,22 +233,26 @@ func main() {
 				select {
 				case ev := <-watcher.Events:
 
-					// Write is running only once
-					if ev.Op == fsnotify.Chmod {
-
-						// check if is set filter
-						if viper.GetString("filter") != "" {
-							if !rgxp.MatchString(ev.Name) {
-								break
-							}
+					// check if is set filter
+					if viper.GetString("filter") != "" {
+						if !rgxp.MatchString(ev.Name) {
+							break
 						}
-
-						// log event
-						logger.Info(ev.Name)
-
-						// add Job to jobs
-						jobs <- watcherJob
 					}
+
+					// Write is running only once
+					if ev.Op == fsnotify.Create {
+
+						watcher.Add(ev.Name)
+
+					}
+
+					// log event
+					logger.Info(ev.Name)
+
+					// add Job to jobs
+					jobs <- watcherJob
+
 				case err := <-watcher.Errors:
 					logger.Fatal(err.Error())
 				}
